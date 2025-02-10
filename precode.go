@@ -6,8 +6,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"slices"
-
 	"github.com/go-chi/chi/v5"
 )
 
@@ -59,7 +57,7 @@ func getTasks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusOK)
 	w.Write(resp)
 }
 
@@ -84,11 +82,9 @@ func addTask(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	sliceKeys := []string{}
-	for k, _ := range tasks {
-		sliceKeys = append(sliceKeys, k)
-	}
-	if slices.Contains(sliceKeys, task.ID) {
+
+	_, ok := tasks[task.ID]
+	if ok {
 		fmt.Println("Ошибка, данный ключ уже существует")
 	} else {
 		fmt.Println("Данные добавлены")
@@ -109,13 +105,13 @@ func getTask(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	id := chi.URLParam(r, "id")
 
-	tasks, ok := tasks[id]
+	task, ok := tasks[id]
 
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	resp, err := json.Marshal(tasks)
+	resp, err := json.Marshal(task)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
