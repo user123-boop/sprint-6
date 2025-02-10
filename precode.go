@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"net/http"
 
+	//"strings"
+	"slices"
+
 	"github.com/go-chi/chi/v5"
 )
 
@@ -57,7 +60,7 @@ func getTasks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	//w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusOK)
 	w.Write(resp)
 }
 
@@ -82,7 +85,18 @@ func addTask(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	tasks[task.ID] = task
+
+	k := []string{}
+	for key, _ := range tasks {
+		k = append(k, key)
+	}
+
+	if slices.Contains(k, task.ID) {
+		fmt.Println("Ошибка, ключ уже существует")
+	} else {
+		fmt.Println("Удача, ключ добавлен")
+		tasks[task.ID] = task
+	}
 
 	w.WriteHeader(http.StatusCreated)
 }
@@ -126,19 +140,12 @@ func deleteTask(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	id := chi.URLParam(r, "id")
 
-	task, ok := tasks[id]
+	_, ok := tasks[id]
 
 	if !ok {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	resp, err := json.Marshal(task)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	w.Write(resp)
 
 	delete(tasks, id)
 }
